@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Nex Attender",
+    "slug": "nex-attender",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "nexattender",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nexusinfotech.nexattender",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Nex Attender uses your location to verify you are within the office geofence when you check in or out.",
+        "NSFaceIDUsageDescription": "Nex Attender uses Face ID to unlock the app."
+      }
+    },
+    "android": {
+      "package": "com.nexusinfotech.nexattender",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Nex Attender uses your location to verify office attendance."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Nex Attender uses Face ID to unlock the app."
+        }
+      ],
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}
