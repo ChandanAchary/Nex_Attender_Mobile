@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { UnlockScreen } from "@/components/UnlockScreen";
 import { Splash } from "@/components/Splash";
 import { Loading } from "@/components/ui";
+import { SplashDoneContext } from "@/lib/splashGate";
 import { ThemeProvider, useTheme } from "@/theme";
 
 function RootNavigator() {
@@ -33,21 +34,20 @@ function RootNavigator() {
       return;
     }
 
-    if (inAuth) {
+    // Logged in: make sure we're in the correct area. This covers a cold start
+    // landing on the index route ("/"), being on an auth screen, and being in
+    // the wrong area — otherwise a logged-in session gets stuck on "/".
+    const correctGroup = isAdmin ? "(admin)" : "(employee)";
+    if (group !== correctGroup) {
       router.replace(isAdmin ? "/(admin)" : "/(employee)");
-      return;
     }
-
-    // Keep users out of the wrong area.
-    if (group === "(admin)" && !isAdmin) router.replace("/(employee)");
-    if (group === "(employee)" && isAdmin) router.replace("/(admin)");
   }, [loading, locked, user, isAdmin, segments, router]);
 
   if (loading) return <Loading label="Loading…" />;
   if (locked) return <UnlockScreen />;
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.cardMuted } }}>
+    <Stack screenOptions={{ headerShown: false, animation: "fade", contentStyle: { backgroundColor: colors.cardMuted } }}>
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(employee)" />
       <Stack.Screen name="(admin)" />
@@ -66,7 +66,9 @@ function Root() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar style={!splashDone || scheme === "dark" ? "light" : "dark"} />
-      <RootNavigator />
+      <SplashDoneContext.Provider value={splashDone}>
+        <RootNavigator />
+      </SplashDoneContext.Provider>
       {!splashDone ? <Splash onFinish={() => setSplashDone(true)} /> : null}
     </View>
   );

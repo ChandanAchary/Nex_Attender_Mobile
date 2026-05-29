@@ -4,12 +4,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/auth/AuthContext";
 import { Button } from "@/components/ui";
+import { biometricLabel } from "@/lib/biometric";
+import { useSplashDone } from "@/lib/splashGate";
 import { font, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export function UnlockScreen() {
   const { styles, colors } = useThemedStyles(makeStyles);
   const { unlock, signOut } = useAuth();
+  const splashDone = useSplashDone();
   const [tried, setTried] = useState(false);
+  const [bioName, setBioName] = useState("Biometric");
+  const prompted = useRef(false);
 
   const enter = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
@@ -20,7 +25,7 @@ export function UnlockScreen() {
   };
 
   useEffect(() => {
-    attempt();
+    biometricLabel().then(setBioName);
     Animated.timing(enter, {
       toValue: 1,
       duration: 500,
@@ -36,8 +41,19 @@ export function UnlockScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Auto-prompt for biometrics once the launch splash has handed off (so the
+  // system dialog doesn't pop up behind the splash).
+  useEffect(() => {
+    if (splashDone && !prompted.current) {
+      prompted.current = true;
+      attempt();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [splashDone]);
+
   const ring = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.35] });
   const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] });
+  const icon = "finger-print" as const;
 
   return (
     <SafeAreaView style={styles.root}>
@@ -57,20 +73,24 @@ export function UnlockScreen() {
             style={[styles.ring, { opacity: ringOpacity, transform: [{ scale: ring }] }]}
           />
           <View style={styles.iconCircle}>
-            <Ionicons name="finger-print" size={56} color={colors.primary} />
+            <Ionicons name={icon} size={56} color={colors.primary} />
           </View>
         </View>
         <Text style={styles.title}>Nex Attender is locked</Text>
         <Text style={styles.subtitle}>
-          Use your fingerprint or Face ID to unlock the app.
+          Use your {bioName.toLowerCase()} to log in to the app.
         </Text>
-        <Button title="Unlock" onPress={attempt} style={{ marginTop: spacing.lg, minWidth: 220 }} />
+        <Button
+          title={`Log in with ${bioName}`}
+          onPress={attempt}
+          style={{ marginTop: spacing.lg, minWidth: 240 }}
+        />
         {tried ? (
           <Button
-            title="Sign in with password instead"
+            title="Use password instead"
             variant="ghost"
-            onPress={signOut}
-            style={{ marginTop: spacing.sm, minWidth: 220 }}
+            onPress={() => signOut({ keepBiometric: true })}
+            style={{ marginTop: spacing.sm, minWidth: 240 }}
           />
         ) : null}
       </Animated.View>

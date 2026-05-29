@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/auth/AuthContext";
 import { Button, Card, Muted, Row } from "@/components/ui";
 import { storage } from "@/lib/storage";
-import { biometricLabel, isBiometricAvailable } from "@/lib/biometric";
+import { authenticate, biometricLabel, isBiometricAvailable } from "@/lib/biometric";
 import {
   font,
   radius,
@@ -89,7 +89,7 @@ export function ProfileCommon() {
   const { user, signOut } = useAuth();
   const [bioOn, setBioOn] = useState(false);
   const [bioAvailable, setBioAvailable] = useState(false);
-  const [bioName, setBioName] = useState("Biometrics");
+  const [bioName, setBioName] = useState("Biometric");
 
   useEffect(() => {
     (async () => {
@@ -100,9 +100,14 @@ export function ProfileCommon() {
   }, []);
 
   const toggleBio = async (next: boolean) => {
-    if (next && !bioAvailable) {
-      Alert.alert("Not available", "No fingerprint or Face ID is set up on this device.");
-      return;
+    if (next) {
+      if (!bioAvailable) {
+        Alert.alert("Not available", "No biometrics are set up on this device.");
+        return;
+      }
+      // Verify the user can authenticate before turning unlock on.
+      const ok = await authenticate(`Confirm your ${bioName.toLowerCase()} to enable unlock`);
+      if (!ok) return; // cancelled or failed → leave it off
     }
     setBioOn(next);
     await storage.setBiometricEnabled(next);

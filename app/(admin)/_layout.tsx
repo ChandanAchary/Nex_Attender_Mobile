@@ -1,48 +1,53 @@
-import { Tabs } from "expo-router";
+import { withLayoutContext } from "expo-router";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { FloatingTabBar } from "@/components/FloatingTabBar";
 
+const { Navigator } = createMaterialTopTabNavigator();
+const MaterialTopTabs = withLayoutContext(Navigator);
+
 export default function AdminLayout() {
   return (
-    <Tabs
+    <MaterialTopTabs
+      tabBarPosition="bottom"
       tabBar={(props) => <FloatingTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
+      screenOptions={{ swipeEnabled: true }}
     >
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="index"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color, size }) => <Ionicons name="grid" size={size} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="grid" size={24} color={color} />,
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="employees"
         options={{
           title: "People",
-          tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="people" size={24} color={color} />,
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="leave"
         options={{
           title: "Leave",
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="calendar" size={24} color={color} />,
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="offices"
         options={{
           title: "Offices",
-          tabBarIcon: ({ color, size }) => <Ionicons name="business" size={size} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="business" size={24} color={color} />,
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="person" size={24} color={color} />,
         }}
       />
-    </Tabs>
+    </MaterialTopTabs>
   );
 }

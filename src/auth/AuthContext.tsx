@@ -18,7 +18,7 @@ interface AuthState {
   locked: boolean; // session exists but awaiting biometric unlock
   isAdmin: boolean;
   signIn: (identifier: string, password: string) => Promise<Me>;
-  signOut: () => Promise<void>;
+  signOut: (opts?: { keepBiometric?: boolean }) => Promise<void>;
   refresh: () => Promise<void>;
   unlock: () => Promise<boolean>;
 }
@@ -78,9 +78,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return u;
   };
 
-  const signOut = async () => {
-    await auth.logout();
-    await storage.setBiometricEnabled(false);
+  const signOut = async (opts?: { keepBiometric?: boolean }) => {
+    // auth.logout() clears the local token even if the network call fails;
+    // swallow errors so we always reset local state (e.g. offline on the
+    // lock screen choosing "use password instead").
+    try {
+      await auth.logout();
+    } catch {
+      /* token already cleared in logout()'s finally block */
+    }
+    if (!opts?.keepBiometric) await storage.setBiometricEnabled(false);
     setUser(null);
     setLocked(false);
   };

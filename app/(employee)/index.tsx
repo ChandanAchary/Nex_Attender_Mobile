@@ -11,6 +11,7 @@ import { ApiError } from "@/api/client";
 import { getCurrentFix, LocationError, openInMaps } from "@/lib/location";
 import { formatDuration, formatTime, statusLabel } from "@/lib/format";
 import { font, spacing, useThemedStyles, type Palette } from "@/theme";
+import { haptics } from "@/lib/haptics";
 
 export default function CheckInScreen() {
   const { styles, colors } = useThemedStyles(makeStyles);
@@ -47,6 +48,7 @@ export default function CheckInScreen() {
           ? await attendance.checkIn(fix)
           : await attendance.checkOut(fix);
       const within = res.status === "WITHIN_RANGE";
+      haptics.success();
       Alert.alert(
         kind === "in" ? "Checked in" : "Checked out",
         `${statusLabel(res.status)}${
@@ -57,6 +59,7 @@ export default function CheckInScreen() {
       void within;
       await load();
     } catch (e) {
+      haptics.error();
       if (e instanceof LocationError) Alert.alert("Location needed", e.message);
       else if (e instanceof ApiError) Alert.alert("Could not record", e.message);
       else Alert.alert("Error", "Something went wrong.");

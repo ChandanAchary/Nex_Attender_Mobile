@@ -7,10 +7,12 @@ import { auth } from "@/api/endpoints";
 import { ApiError } from "@/api/client";
 import { Button, ErrorText, Field, Muted } from "@/components/ui";
 import { GlowBackdrop } from "@/components/GlowBackdrop";
-import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { font, layout, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { useKeyboardHeight } from "@/lib/useKeyboard";
 
 export default function ChangePassword() {
   const { styles } = useThemedStyles(makeStyles);
+  const kb = useKeyboardHeight();
   const { user, refresh, signOut } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<"request" | "verify">("request");
@@ -56,10 +58,10 @@ export default function ChangePassword() {
     <SafeAreaView style={styles.root}>
       <GlowBackdrop />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scroll, kb > 0 && { paddingBottom: kb + spacing.xl }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="none" showsVerticalScrollIndicator={false}>
           <View style={{ gap: spacing.xs }}>
             <Text style={styles.title}>Change password</Text>
             <Muted>
@@ -103,7 +105,7 @@ export default function ChangePassword() {
             <ErrorText>{error}</ErrorText>
           </View>
 
-          <Button title="Sign out" variant="ghost" onPress={signOut} />
+          <Button title="Sign out" variant="ghost" onPress={() => signOut()} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -113,9 +115,12 @@ export default function ChangePassword() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
-    scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.lg },
+    scroll: { flexGrow: 1, justifyContent: "flex-start", padding: spacing.xl, gap: spacing.lg },
     title: { fontSize: font.xl, fontWeight: "800", color: colors.text },
     card: {
+      width: "100%",
+      maxWidth: layout.maxForm,
+      alignSelf: "center",
       backgroundColor: colors.card,
       borderRadius: radius.lg,
       padding: spacing.xl,

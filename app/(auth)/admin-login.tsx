@@ -18,10 +18,13 @@ import { Button, ErrorText, Field } from "@/components/ui";
 import { GlowBackdrop } from "@/components/GlowBackdrop";
 import { storage } from "@/lib/storage";
 import { ApiError } from "@/api/client";
-import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { haptics } from "@/lib/haptics";
+import { font, layout, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { useKeyboardHeight } from "@/lib/useKeyboard";
 
 export default function AdminLogin() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const kb = useKeyboardHeight();
   const { signIn } = useAuth();
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
@@ -54,6 +57,7 @@ export default function AdminLogin() {
       await signIn(identifier.trim(), password);
       // The root navigator routes to the admin area for admin accounts.
     } catch (e) {
+      haptics.error();
       setError(e instanceof ApiError ? e.message : "Could not sign in. Try again.");
     } finally {
       setLoading(false);
@@ -67,10 +71,10 @@ export default function AdminLogin() {
     <SafeAreaView style={styles.root}>
       <GlowBackdrop accent={colors.accent} />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scroll, kb > 0 && { paddingBottom: kb + spacing.xl }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="none" showsVerticalScrollIndicator={false}>
           <Pressable style={styles.back} onPress={goBack} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={colors.text} />
             <Text style={styles.backText}>Employee login</Text>
@@ -133,7 +137,7 @@ export default function AdminLogin() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
-    scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.xl },
+    scroll: { flexGrow: 1, justifyContent: "flex-start", padding: spacing.xl, gap: spacing.xl },
     back: { flexDirection: "row", alignItems: "center", gap: spacing.xs, alignSelf: "flex-start" },
     backText: { color: colors.text, fontSize: font.sm, fontWeight: "600" },
     brand: { alignItems: "center", gap: spacing.sm },
@@ -164,6 +168,9 @@ const makeStyles = (colors: Palette) =>
     },
     pillText: { fontSize: font.xs, fontWeight: "700", color: colors.accent, letterSpacing: 0.5 },
     card: {
+      width: "100%",
+      maxWidth: layout.maxForm,
+      alignSelf: "center",
       backgroundColor: colors.card,
       borderRadius: radius.lg,
       padding: spacing.xl,

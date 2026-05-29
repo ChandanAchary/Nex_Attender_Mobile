@@ -1,19 +1,63 @@
-import React from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { font, radius, spacing, useTheme } from "@/theme";
+import type { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
+import { font, spacing, useTheme } from "@/theme";
+import { haptics } from "@/lib/haptics";
 
 export const TAB_BAR_HEIGHT = 62;
 
+function TabItem({
+  focused,
+  tint,
+  label,
+  icon,
+  onPress,
+  onLongPress,
+  accessibilityLabel,
+}: {
+  focused: boolean;
+  tint: string;
+  label: string;
+  icon: React.ReactNode;
+  onPress: () => void;
+  onLongPress: () => void;
+  accessibilityLabel?: string;
+}) {
+  const scale = useRef(new Animated.Value(focused ? 1.12 : 1)).current;
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: focused ? 1.12 : 1,
+      useNativeDriver: true,
+      speed: 18,
+      bounciness: 12,
+    }).start();
+  }, [focused, scale]);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: focused }}
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={styles.item}
+    >
+      <Animated.View style={{ transform: [{ scale }] }}>{icon}</Animated.View>
+      <Text numberOfLines={1} style={[styles.label, { color: tint, fontWeight: focused ? "800" : "600" }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 /**
  * iOS-style floating, pill-shaped, translucent bottom tab bar (à la Apple
- * Albums). Frosted via expo-blur on iOS, with a translucent background that
- * keeps it legible on Android too. Rendered absolutely so it floats over the
- * screen content rather than consuming layout space.
+ * Albums). Frosted via expo-blur, with the active icon tinted + gently scaled
+ * and a selection haptic on tap.
  */
-export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function FloatingTabBar({ state, descriptors, navigation }: MaterialTopTabBarProps) {
   const { colors, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const dark = scheme === "dark";
@@ -36,11 +80,11 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
             const focused = state.index === index;
-            const iconColor = focused ? colors.textInverse : colors.textMuted;
-            const labelColor = focused ? colors.primary : colors.textMuted;
+            const tint = focused ? colors.primary : colors.textMuted;
             const label = typeof options.title === "string" ? options.title : route.name;
 
             const onPress = () => {
+              haptics.selection();
               const event = navigation.emit({
                 type: "tabPress",
                 target: route.key,
@@ -54,22 +98,16 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
               navigation.emit({ type: "tabLongPress", target: route.key });
 
             return (
-              <Pressable
+              <TabItem
                 key={route.key}
-                accessibilityRole="button"
-                accessibilityState={{ selected: focused }}
-                accessibilityLabel={options.tabBarAccessibilityLabel}
+                focused={focused}
+                tint={tint}
+                label={label}
+                icon={options.tabBarIcon?.({ focused, color: tint })}
                 onPress={onPress}
                 onLongPress={onLongPress}
-                style={styles.item}
-              >
-                <View style={[styles.iconPill, focused && { backgroundColor: colors.primary }]}>
-                  {options.tabBarIcon?.({ focused, color: iconColor, size: 22 })}
-                </View>
-                <Text numberOfLines={1} style={[styles.label, { color: labelColor }]}>
-                  {label}
-                </Text>
-              </Pressable>
+                accessibilityLabel={label}
+              />
             );
           })}
         </BlurView>
@@ -109,15 +147,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 4,
     paddingVertical: spacing.xs,
-  },
-  iconPill: {
-    width: 56,
-    height: 32,
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
   },
   label: { fontSize: font.xs, fontWeight: "600" },
 });

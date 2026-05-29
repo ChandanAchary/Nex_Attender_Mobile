@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { StyleSheet, useColorScheme } from "react-native";
+import { Dimensions, StyleSheet, useColorScheme } from "react-native";
 import { storage } from "@/lib/storage";
 
 /**
@@ -14,13 +14,33 @@ import { storage } from "@/lib/storage";
  * static. Colours are resolved at runtime from the active light/dark palette
  * via {@link useTheme} / {@link useThemedStyles}.
  */
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+/** Shortest side is orientation-independent and a good device-size proxy. */
+const SHORTEST_SIDE = Math.min(SCREEN_W, SCREEN_H);
+
+export const isTablet = SHORTEST_SIDE >= 600;
+
+/**
+ * Gentle, clamped responsive scale. Normal phones (≈360–430pt) are unchanged;
+ * very small phones shrink a little so content fits, tablets grow a little so
+ * text/spacing aren't tiny — capped so nothing balloons.
+ */
+const scaleFactor =
+  SHORTEST_SIDE < 360
+    ? SHORTEST_SIDE / 360
+    : SHORTEST_SIDE <= 430
+      ? 1
+      : 1 + Math.min((SHORTEST_SIDE - 430) / 430, 0.6) * 0.25;
+
+const rs = (n: number) => Math.round(n * scaleFactor);
+
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  xxl: 32,
+  xs: rs(4),
+  sm: rs(8),
+  md: rs(12),
+  lg: rs(16),
+  xl: rs(24),
+  xxl: rs(32),
 };
 
 export const radius = {
@@ -31,12 +51,18 @@ export const radius = {
 };
 
 export const font = {
-  xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 18,
-  xl: 22,
-  xxl: 28,
+  xs: rs(12),
+  sm: rs(14),
+  md: rs(16),
+  lg: rs(18),
+  xl: rs(22),
+  xxl: rs(28),
+};
+
+/** Max content widths so layouts stay a readable centered column on tablets. */
+export const layout = {
+  maxContent: 640,
+  maxForm: 480,
 };
 
 export const lightColors = {

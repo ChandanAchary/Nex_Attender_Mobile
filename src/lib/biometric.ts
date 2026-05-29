@@ -7,14 +7,8 @@ export async function isBiometricAvailable(): Promise<boolean> {
 }
 
 export async function biometricLabel(): Promise<string> {
-  const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
-  if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-    return "Face ID";
-  }
-  if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-    return "Fingerprint";
-  }
-  return "Biometrics";
+  // The app refers to all face/fingerprint methods generically as "Biometric".
+  return "Biometric";
 }
 
 export async function authenticate(reason = "Unlock Nex Attender"): Promise<boolean> {

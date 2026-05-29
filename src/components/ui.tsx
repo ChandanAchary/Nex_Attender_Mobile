@@ -11,6 +11,7 @@ import {
   ViewProps,
 } from "react-native";
 import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { haptics } from "@/lib/haptics";
 
 export function Card({ style, children, ...rest }: ViewProps) {
   const { styles } = useThemedStyles(makeStyles);
@@ -78,7 +79,10 @@ export function Button({
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <Pressable
-        onPress={onPress}
+        onPress={() => {
+          haptics.light();
+          onPress();
+        }}
         disabled={isDisabled}
         onPressIn={() => !isDisabled && press(0.96)}
         onPressOut={() => press(1)}

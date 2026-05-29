@@ -18,6 +18,7 @@ export function Splash({ onFinish }: { onFinish: () => void }) {
   const titleY = useRef(new Animated.Value(14)).current;
   const subOpacity = useRef(new Animated.Value(0)).current;
   const bar = useRef(new Animated.Value(0)).current;
+  const exitY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
@@ -40,12 +41,22 @@ export function Splash({ onFinish }: { onFinish: () => void }) {
       Animated.timing(bar, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
       Animated.delay(250),
     ]).start(() => {
-      Animated.timing(container, {
-        toValue: 0,
-        duration: 420,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }).start(() => onFinish());
+      // Float the logo up while the splash fades, handing off to the login
+      // screen's brand which floats up from below.
+      Animated.parallel([
+        Animated.timing(container, {
+          toValue: 0,
+          duration: 460,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(exitY, {
+          toValue: -70,
+          duration: 460,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start(() => onFinish());
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -69,7 +80,7 @@ export function Splash({ onFinish }: { onFinish: () => void }) {
           <Animated.Image
             source={require("../../assets/splash-icon.png")}
             resizeMode="contain"
-            style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
+            style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }, { translateY: exitY }] }]}
           />
         </View>
 

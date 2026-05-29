@@ -7,10 +7,12 @@ import { auth } from "@/api/endpoints";
 import { ApiError } from "@/api/client";
 import { Button, ErrorText, Field, Muted } from "@/components/ui";
 import { GlowBackdrop } from "@/components/GlowBackdrop";
-import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { font, layout, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { useKeyboardHeight } from "@/lib/useKeyboard";
 
 export default function ForgotPassword() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const kb = useKeyboardHeight();
   const router = useRouter();
   const [step, setStep] = useState<"request" | "verify" | "done">("request");
   const [email, setEmail] = useState("");
@@ -53,8 +55,8 @@ export default function ForgotPassword() {
   return (
     <SafeAreaView style={styles.root}>
       <GlowBackdrop />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView behavior={undefined} style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scroll, kb > 0 && { paddingBottom: kb + spacing.xl }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="none" showsVerticalScrollIndicator={false}>
           <Pressable style={styles.back} onPress={() => router.back()} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={colors.text} />
             <Text style={styles.backText}>Back to sign in</Text>
@@ -111,11 +113,14 @@ export default function ForgotPassword() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
-    scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.lg },
+    scroll: { flexGrow: 1, justifyContent: "flex-start", padding: spacing.xl, gap: spacing.lg },
     back: { flexDirection: "row", alignItems: "center", gap: spacing.xs, alignSelf: "flex-start" },
     backText: { color: colors.text, fontSize: font.sm, fontWeight: "600" },
     title: { fontSize: font.xl, fontWeight: "800", color: colors.text },
     card: {
+      width: "100%",
+      maxWidth: layout.maxForm,
+      alignSelf: "center",
       backgroundColor: colors.card,
       borderRadius: radius.lg,
       padding: spacing.xl,

@@ -19,10 +19,15 @@ import { Button, ErrorText, Field } from "@/components/ui";
 import { GlowBackdrop } from "@/components/GlowBackdrop";
 import { storage } from "@/lib/storage";
 import { ApiError } from "@/api/client";
-import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { haptics } from "@/lib/haptics";
+import { font, layout, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { useKeyboardHeight } from "@/lib/useKeyboard";
+import { useSplashDone } from "@/lib/splashGate";
 
 export default function Login() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const kb = useKeyboardHeight();
+  const splashDone = useSplashDone();
   const { signIn } = useAuth();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -35,12 +40,17 @@ export default function Login() {
 
   useEffect(() => {
     storage.getLastIdentifier().then((v) => v && setIdentifier(v));
-    Animated.stagger(120, [
-      Animated.timing(brand, { toValue: 1, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(card, { toValue: 1, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-    ]).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Float the brand up into place once the splash hands off, so the logo
+  // appears to continue floating up from the launch screen into the form.
+  useEffect(() => {
+    if (!splashDone) return;
+    Animated.stagger(130, [
+      Animated.spring(brand, { toValue: 1, useNativeDriver: true, speed: 10, bounciness: 7 }),
+      Animated.timing(card, { toValue: 1, duration: 480, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+  }, [splashDone, brand, card]);
 
   const onSubmit = async () => {
     setError("");
@@ -53,6 +63,7 @@ export default function Login() {
       await signIn(identifier.trim(), password);
       // Navigation handled by the root navigator.
     } catch (e) {
+      haptics.error();
       setError(e instanceof ApiError ? e.message : "Could not sign in. Try again.");
     } finally {
       setLoading(false);
@@ -63,14 +74,20 @@ export default function Login() {
     <SafeAreaView style={styles.root}>
       <GlowBackdrop />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scroll, kb > 0 && { paddingBottom: kb + spacing.xl }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="none" showsVerticalScrollIndicator={false}>
           <Animated.View
             style={[
               styles.brand,
-              { opacity: brand, transform: [{ translateY: brand.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }] },
+              {
+                opacity: brand,
+                transform: [
+                  { translateY: brand.interpolate({ inputRange: [0, 1], outputRange: [48, 0] }) },
+                  { scale: brand.interpolate({ inputRange: [0, 1], outputRange: [1.2, 1] }) },
+                ],
+              },
             ]}
           >
             <Image
@@ -133,7 +150,6 @@ export default function Login() {
                 <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
               </Pressable>
             </Link>
-            <Text style={styles.footer}>Connected to nex-attender.vercel.app</Text>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -144,7 +160,7 @@ export default function Login() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
-    scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.xl },
+    scroll: { flexGrow: 1, justifyContent: "flex-start", padding: spacing.xl, gap: spacing.xl },
     brand: { alignItems: "center", gap: spacing.sm },
     logo: {
       width: 104,
@@ -153,6 +169,9 @@ const makeStyles = (colors: Palette) =>
     title: { fontSize: font.xxl, fontWeight: "800", color: colors.text },
     subtitle: { fontSize: font.sm, color: colors.textMuted, letterSpacing: 0.5 },
     card: {
+      width: "100%",
+      maxWidth: layout.maxForm,
+      alignSelf: "center",
       backgroundColor: colors.card,
       borderRadius: radius.lg,
       padding: spacing.xl,
@@ -179,5 +198,4 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.card,
     },
     adminText: { color: colors.textMuted, fontWeight: "700", fontSize: font.sm },
-    footer: { color: colors.textMuted, fontSize: font.xs, textAlign: "center" },
   });
