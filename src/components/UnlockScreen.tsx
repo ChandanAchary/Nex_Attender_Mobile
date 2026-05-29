@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/auth/AuthContext";
 import { Button } from "@/components/ui";
-import { colors, font, spacing } from "@/theme";
+import { font, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export function UnlockScreen() {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const { unlock, signOut } = useAuth();
   const [tried, setTried] = useState(false);
+
+  const enter = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
 
   const attempt = async () => {
     setTried(true);
@@ -17,13 +21,45 @@ export function UnlockScreen() {
 
   useEffect(() => {
     attempt();
+    Animated.timing(enter, {
+      toValue: 1,
+      duration: 500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 1100, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 1100, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    ).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const ring = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.35] });
+  const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] });
+
   return (
     <SafeAreaView style={styles.root}>
-      <View style={styles.body}>
-        <Ionicons name="finger-print" size={72} color={colors.primary} />
+      <Animated.View
+        style={[
+          styles.body,
+          {
+            opacity: enter,
+            transform: [
+              { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+            ],
+          },
+        ]}
+      >
+        <View style={styles.iconWrap}>
+          <Animated.View
+            style={[styles.ring, { opacity: ringOpacity, transform: [{ scale: ring }] }]}
+          />
+          <View style={styles.iconCircle}>
+            <Ionicons name="finger-print" size={56} color={colors.primary} />
+          </View>
+        </View>
         <Text style={styles.title}>Nex Attender is locked</Text>
         <Text style={styles.subtitle}>
           Use your fingerprint or Face ID to unlock the app.
@@ -37,14 +73,33 @@ export function UnlockScreen() {
             style={{ marginTop: spacing.sm, minWidth: 220 }}
           />
         ) : null}
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  body: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, gap: spacing.sm },
-  title: { fontSize: font.xl, fontWeight: "700", color: colors.textInverse, marginTop: spacing.lg },
-  subtitle: { fontSize: font.sm, color: "#94a3b8", textAlign: "center", maxWidth: 280 },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg },
+    body: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, gap: spacing.sm },
+    iconWrap: { alignItems: "center", justifyContent: "center", marginBottom: spacing.md },
+    ring: {
+      position: "absolute",
+      width: 110,
+      height: 110,
+      borderRadius: 55,
+      backgroundColor: colors.primary,
+    },
+    iconCircle: {
+      width: 110,
+      height: 110,
+      borderRadius: 55,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: { fontSize: font.xl, fontWeight: "700", color: colors.text, marginTop: spacing.lg },
+    subtitle: { fontSize: font.sm, color: colors.textMuted, textAlign: "center", maxWidth: 280 },
+  });

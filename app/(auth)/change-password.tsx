@@ -6,9 +6,11 @@ import { useAuth } from "@/auth/AuthContext";
 import { auth } from "@/api/endpoints";
 import { ApiError } from "@/api/client";
 import { Button, ErrorText, Field, Muted } from "@/components/ui";
-import { colors, font, radius, spacing } from "@/theme";
+import { GlowBackdrop } from "@/components/GlowBackdrop";
+import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export default function ChangePassword() {
+  const { styles } = useThemedStyles(makeStyles);
   const { user, refresh, signOut } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<"request" | "verify">("request");
@@ -52,6 +54,7 @@ export default function ChangePassword() {
 
   return (
     <SafeAreaView style={styles.root}>
+      <GlowBackdrop />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -59,7 +62,7 @@ export default function ChangePassword() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={{ gap: spacing.xs }}>
             <Text style={styles.title}>Change password</Text>
-            <Muted style={{ color: "#94a3b8" }}>
+            <Muted>
               {user?.mustChangePassword
                 ? "You must set a new password before continuing."
                 : "Secure your account with a new password."}
@@ -107,9 +110,17 @@ export default function ChangePassword() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.lg },
-  title: { fontSize: font.xl, fontWeight: "800", color: colors.textInverse },
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.lg },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg },
+    scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.lg },
+    title: { fontSize: font.xl, fontWeight: "800", color: colors.text },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: radius.lg,
+      padding: spacing.xl,
+      gap: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+  });

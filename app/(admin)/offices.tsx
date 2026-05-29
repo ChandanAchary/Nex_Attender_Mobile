@@ -9,9 +9,10 @@ import { geo, offices as officesApi } from "@/api/endpoints";
 import type { GeocodeResult, Office } from "@/api/types";
 import { ApiError } from "@/api/client";
 import { getCurrentFix, LocationError, openInMaps } from "@/lib/location";
-import { colors, font, radius, spacing } from "@/theme";
+import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export default function Offices() {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const [list, setList] = useState<Office[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -102,6 +103,7 @@ function OfficeModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const isNew = office === "new";
   const existing = office && office !== "new" ? office : null;
 
@@ -276,7 +278,7 @@ function OfficeModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   addBtn: {
     width: 40,
     height: 40,

@@ -9,7 +9,7 @@ import { leave as leaveApi } from "@/api/endpoints";
 import type { Leave, LeaveType } from "@/api/types";
 import { ApiError } from "@/api/client";
 import { formatDate } from "@/lib/format";
-import { colors, font, radius, spacing } from "@/theme";
+import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 const TYPES: LeaveType[] = ["CASUAL", "SICK", "PAID", "UNPAID", "OTHER"];
 
@@ -18,6 +18,7 @@ function toneFor(status: string): "success" | "warning" | "danger" {
 }
 
 export default function LeaveScreen() {
+  const { styles } = useThemedStyles(makeStyles);
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -160,6 +161,7 @@ export default function LeaveScreen() {
 }
 
 function DateField({ label, value, onPress }: { label: string; value: Date; onPress: () => void }) {
+  const { styles, colors } = useThemedStyles(makeStyles);
   return (
     <Pressable style={styles.dateField} onPress={onPress}>
       <Text style={styles.label}>{label}</Text>
@@ -171,7 +173,7 @@ function DateField({ label, value, onPress }: { label: string; value: Date; onPr
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   cardTitle: { fontSize: font.md, fontWeight: "700", color: colors.text },
   label: { fontSize: font.sm, fontWeight: "600", color: colors.text },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },

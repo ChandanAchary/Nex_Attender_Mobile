@@ -10,9 +10,10 @@ import type { TodayState } from "@/api/types";
 import { ApiError } from "@/api/client";
 import { getCurrentFix, LocationError, openInMaps } from "@/lib/location";
 import { formatDuration, formatTime, statusLabel } from "@/lib/format";
-import { colors, font, radius, spacing } from "@/theme";
+import { font, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export default function CheckInScreen() {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const { user } = useAuth();
   const [today, setToday] = useState<TodayState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -149,7 +150,7 @@ export default function CheckInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   statusCard: { gap: spacing.md },
   statusHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   statusTitle: { fontSize: font.lg, fontWeight: "700", color: colors.text },

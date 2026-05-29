@@ -1,14 +1,18 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { UnlockScreen } from "@/components/UnlockScreen";
+import { Splash } from "@/components/Splash";
 import { Loading } from "@/components/ui";
-import { colors } from "@/theme";
+import { ThemeProvider, useTheme } from "@/theme";
 
 function RootNavigator() {
   const { loading, user, locked, isAdmin } = useAuth();
+  const { colors } = useTheme();
   const segments = useSegments() as string[];
   const router = useRouter();
 
@@ -51,13 +55,31 @@ function RootNavigator() {
   );
 }
 
+function Root() {
+  const { colors, scheme } = useTheme();
+  const [splashDone, setSplashDone] = useState(false);
+
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.bg).catch(() => {});
+  }, [colors.bg]);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <StatusBar style={!splashDone || scheme === "dark" ? "light" : "dark"} />
+      <RootNavigator />
+      {!splashDone ? <Splash onFinish={() => setSplashDone(true)} /> : null}
+    </View>
+  );
+}
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <StatusBar style="dark" />
-        <RootNavigator />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <Root />
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

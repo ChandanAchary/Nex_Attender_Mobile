@@ -7,7 +7,7 @@ import { leave as leaveApi } from "@/api/endpoints";
 import type { Leave, LeaveStatus } from "@/api/types";
 import { ApiError } from "@/api/client";
 import { formatDate } from "@/lib/format";
-import { colors, font, radius, spacing } from "@/theme";
+import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 const FILTERS: Array<{ key: LeaveStatus | "ALL"; label: string }> = [
   { key: "PENDING", label: "Pending" },
@@ -21,6 +21,7 @@ function tone(status: string): "success" | "warning" | "danger" {
 }
 
 export default function AdminLeave() {
+  const { styles } = useThemedStyles(makeStyles);
   const [filter, setFilter] = useState<LeaveStatus | "ALL">("PENDING");
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +140,7 @@ export default function AdminLeave() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   filters: { flexDirection: "row", gap: spacing.sm },
   filter: {
     flex: 1,

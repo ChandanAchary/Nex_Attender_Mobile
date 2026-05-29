@@ -9,11 +9,12 @@ import { roles as rolesApi, users as usersApi } from "@/api/endpoints";
 import type { AdminUser, EmploymentType, RoleItem } from "@/api/types";
 import { ApiError } from "@/api/client";
 import { formatDate, todayIso } from "@/lib/format";
-import { colors, font, radius, spacing } from "@/theme";
+import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 const EMPLOYMENT: EmploymentType[] = ["FULL_TIME", "INTERN"];
 
 export default function Employees() {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const [list, setList] = useState<AdminUser[]>([]);
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [q, setQ] = useState("");
@@ -174,6 +175,7 @@ function CreateEmployeeModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -272,7 +274,7 @@ function CreateEmployeeModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   addBtn: {
     width: 40,
     height: 40,

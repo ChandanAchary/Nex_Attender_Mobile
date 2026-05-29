@@ -11,7 +11,7 @@ import { ApiError } from "@/api/client";
 import { formatDate, formatDuration, formatTime, statusLabel, todayIso } from "@/lib/format";
 import { openInMaps } from "@/lib/location";
 import { shareCsv } from "@/lib/share";
-import { colors, font, radius, spacing } from "@/theme";
+import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 function rowState(r: DailyRow): { label: string; tone: "success" | "warning" | "danger" | "info" } {
   if (r.onLeave) return { label: "On leave", tone: "info" };
@@ -21,6 +21,7 @@ function rowState(r: DailyRow): { label: string; tone: "success" | "warning" | "
 }
 
 export default function AdminDashboard() {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const [date, setDate] = useState(todayIso());
   const [data, setData] = useState<AttendanceDay | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,6 +153,7 @@ export default function AdminDashboard() {
 }
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+  const { styles } = useThemedStyles(makeStyles);
   return (
     <View style={styles.stat}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>
@@ -160,7 +162,7 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   dateBar: {
     flexDirection: "row",
     alignItems: "center",

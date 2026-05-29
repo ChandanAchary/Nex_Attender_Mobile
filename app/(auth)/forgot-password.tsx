@@ -6,9 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "@/api/endpoints";
 import { ApiError } from "@/api/client";
 import { Button, ErrorText, Field, Muted } from "@/components/ui";
-import { colors, font, radius, spacing } from "@/theme";
+import { GlowBackdrop } from "@/components/GlowBackdrop";
+import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export default function ForgotPassword() {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const router = useRouter();
   const [step, setStep] = useState<"request" | "verify" | "done">("request");
   const [email, setEmail] = useState("");
@@ -50,10 +52,11 @@ export default function ForgotPassword() {
 
   return (
     <SafeAreaView style={styles.root}>
+      <GlowBackdrop />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Pressable style={styles.back} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={22} color={colors.textInverse} />
+          <Pressable style={styles.back} onPress={() => router.back()} hitSlop={8}>
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
             <Text style={styles.backText}>Back to sign in</Text>
           </Pressable>
 
@@ -105,11 +108,19 @@ export default function ForgotPassword() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.lg },
-  back: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
-  backText: { color: colors.textInverse, fontSize: font.sm },
-  title: { fontSize: font.xl, fontWeight: "800", color: colors.textInverse },
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.lg },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg },
+    scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.lg },
+    back: { flexDirection: "row", alignItems: "center", gap: spacing.xs, alignSelf: "flex-start" },
+    backText: { color: colors.text, fontSize: font.sm, fontWeight: "600" },
+    title: { fontSize: font.xl, fontWeight: "800", color: colors.text },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: radius.lg,
+      padding: spacing.xl,
+      gap: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+  });

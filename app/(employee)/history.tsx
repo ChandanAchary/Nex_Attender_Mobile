@@ -8,9 +8,10 @@ import { attendance } from "@/api/endpoints";
 import type { HistoryDay } from "@/api/types";
 import { ApiError } from "@/api/client";
 import { formatDate, formatDuration, formatTime, statusLabel, todayIso } from "@/lib/format";
-import { colors, font, spacing } from "@/theme";
+import { font, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export default function HistoryScreen() {
+  const { styles, colors } = useThemedStyles(makeStyles);
   const [days, setDays] = useState<HistoryDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -107,6 +108,7 @@ export default function HistoryScreen() {
 }
 
 function Time({ label, value }: { label: string; value: string }) {
+  const { styles } = useThemedStyles(makeStyles);
   return (
     <View style={styles.timeBox}>
       <Text style={styles.timeLabel}>{label}</Text>
@@ -115,7 +117,7 @@ function Time({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   dayCard: { gap: spacing.sm },
   dayHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   dayDate: { fontSize: font.md, fontWeight: "700", color: colors.text },
