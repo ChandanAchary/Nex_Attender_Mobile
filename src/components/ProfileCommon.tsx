@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/auth/AuthContext";
 import { Button, Card, Muted, Row } from "@/components/ui";
 import { storage } from "@/lib/storage";
-import { authenticate, biometricLabel, isBiometricAvailable } from "@/lib/biometric";
+import { biometricLabel, isBiometricAvailable } from "@/lib/biometric";
 import {
   font,
   radius,
@@ -86,7 +86,7 @@ function AppearanceToggle() {
 /** Shared profile content used by both employee and admin profile screens. */
 export function ProfileCommon() {
   const { styles, colors } = useThemedStyles(makeStyles);
-  const { user, signOut } = useAuth();
+  const { user, signOut, enableBiometric, disableBiometric } = useAuth();
   const [bioOn, setBioOn] = useState(false);
   const [bioAvailable, setBioAvailable] = useState(false);
   const [bioName, setBioName] = useState("Biometric");
@@ -105,18 +105,26 @@ export function ProfileCommon() {
         Alert.alert("Not available", "No biometrics are set up on this device.");
         return;
       }
-      // Verify the user can authenticate before turning unlock on.
-      const ok = await authenticate(`Confirm your ${bioName.toLowerCase()} to enable unlock`);
-      if (!ok) return; // cancelled or failed → leave it off
+      // Stores the current credentials behind a biometric check so the user can
+      // log in with biometrics later — even after signing out.
+      const ok = await enableBiometric();
+      if (!ok) {
+        Alert.alert(
+          "Sign in again to enable",
+          "For your security, please sign out and sign in once more, then turn on biometric login.",
+        );
+        return;
+      }
+      setBioOn(true);
+      Alert.alert(
+        "Biometric login on",
+        "You can now log in with biometrics — even after signing out.",
+      );
+    } else {
+      await disableBiometric();
+      setBioOn(false);
+      Alert.alert("Biometric login off", "Saved credentials were removed from this device.");
     }
-    setBioOn(next);
-    await storage.setBiometricEnabled(next);
-    Alert.alert(
-      next ? "Biometric unlock on" : "Biometric unlock off",
-      next
-        ? `${bioName} will be required the next time you open the app.`
-        : "You'll no longer need biometrics to open the app.",
-    );
   };
 
   const confirmLogout = () => {

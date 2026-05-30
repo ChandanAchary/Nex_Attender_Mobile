@@ -89,7 +89,7 @@ export function UnlockScreen() {
           <Button
             title="Use password instead"
             variant="ghost"
-            onPress={() => signOut({ keepBiometric: true })}
+            onPress={() => signOut()}
             style={{ marginTop: spacing.sm, minWidth: 240 }}
           />
         ) : null}

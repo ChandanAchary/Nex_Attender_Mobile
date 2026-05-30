@@ -18,6 +18,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { Button, ErrorText, Field } from "@/components/ui";
 import { GlowBackdrop } from "@/components/GlowBackdrop";
 import { storage } from "@/lib/storage";
+import { isBiometricAvailable } from "@/lib/biometric";
 import { ApiError } from "@/api/client";
 import { haptics } from "@/lib/haptics";
 import { font, layout, radius, spacing, useThemedStyles, type Palette } from "@/theme";
@@ -28,18 +29,27 @@ export default function Login() {
   const { styles, colors } = useThemedStyles(makeStyles);
   const kb = useKeyboardHeight();
   const splashDone = useSplashDone();
-  const { signIn } = useAuth();
+  const { signIn, unlock } = useAuth();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [bioReady, setBioReady] = useState(false);
 
   const brand = useRef(new Animated.Value(0)).current;
   const card = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     storage.getLastIdentifier().then((v) => v && setIdentifier(v));
+    // Offer biometric login if it's set up (works even when signed out).
+    (async () => {
+      setBioReady(
+        (await isBiometricAvailable()) &&
+          (await storage.isBiometricEnabled()) &&
+          (await storage.hasBiometricCredentials()),
+      );
+    })();
   }, []);
 
   // Float the brand up into place once the splash hands off, so the logo
@@ -134,6 +144,14 @@ export default function Login() {
             <ErrorText>{error}</ErrorText>
 
             <Button title="Sign in" onPress={onSubmit} loading={loading} />
+
+            {bioReady ? (
+              <Button
+                title="Log in with Biometric"
+                variant="secondary"
+                onPress={() => unlock()}
+              />
+            ) : null}
 
             <Link href="/(auth)/forgot-password" asChild>
               <Pressable hitSlop={8}>
