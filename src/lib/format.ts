@@ -45,6 +45,26 @@ export function todayIso(): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
+/** Day-of-week (0=Sun … 6=Sat) for a "YYYY-MM-DD" date key. */
+export function weekdayOf(dateKey: string): number {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/** True if Sat (6) or Sun (0). Nexus policy: every weekend day is a weekly off. */
+export function isWeekend(dateKey: string): boolean {
+  const w = weekdayOf(dateKey);
+  return w === 0 || w === 6;
+}
+
+/** "Saturday" / "Sunday" / null. */
+export function weekendName(dateKey: string): "Saturday" | "Sunday" | null {
+  const w = weekdayOf(dateKey);
+  if (w === 0) return "Sunday";
+  if (w === 6) return "Saturday";
+  return null;
+}
+
 export function currentMonthIso(): string {
   return todayIso().slice(0, 7);
 }

@@ -42,6 +42,15 @@ export default function AdminLayout() {
         }}
       />
       <MaterialTopTabs.Screen
+        name="holidays"
+        options={{
+          title: "Holidays",
+          tabBarIcon: ({ color }: { color: string }) => (
+            <Ionicons name="calendar-clear-outline" size={24} color={color} />
+          ),
+        }}
+      />
+      <MaterialTopTabs.Screen
         name="profile"
         options={{
           title: "Profile",

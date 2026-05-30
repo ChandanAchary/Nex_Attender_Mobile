@@ -5,11 +5,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/auth/AuthContext";
 import { Screen } from "@/components/Screen";
 import { Badge, Button, Card, Loading, Muted, Row } from "@/components/ui";
-import { attendance } from "@/api/endpoints";
+import { attendance, holidays as holidaysApi } from "@/api/endpoints";
 import type { TodayState } from "@/api/types";
 import { ApiError } from "@/api/client";
 import { getCurrentFix, LocationError, openInMaps } from "@/lib/location";
-import { formatDuration, formatTime, statusLabel } from "@/lib/format";
+import { formatDuration, formatTime, statusLabel, todayIso, weekendName } from "@/lib/format";
 import { font, spacing, useThemedStyles, type Palette } from "@/theme";
 import { haptics } from "@/lib/haptics";
 
@@ -20,11 +20,35 @@ export default function CheckInScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [busy, setBusy] = useState<"in" | "out" | null>(null);
+  const [holiday, setHoliday] = useState<{
+    name: string;
+    kind: "weekend" | "explicit";
+  } | null>(null);
 
   const load = useCallback(async () => {
     try {
       const data = await attendance.today();
       setToday(data);
+
+      // Weekend is derived locally from the date — works without network.
+      const key = todayIso();
+      const wk = weekendName(key); // "Saturday" | "Sunday" | null
+      let banner: { name: string; kind: "weekend" | "explicit" } | null = wk
+        ? { name: wk, kind: "weekend" }
+        : null;
+
+      // Explicit holidays (Republic Day, etc.) layer on top — they win the label.
+      try {
+        const { holidays } = await holidaysApi.list({ from: key, to: key });
+        const officeIds = new Set((data.offices ?? []).map((o) => o.id));
+        const h = holidays.find(
+          (x) => x.officeId === null || (x.officeId !== null && officeIds.has(x.officeId)),
+        );
+        if (h) banner = { name: h.name, kind: "explicit" };
+      } catch {
+        /* holidays endpoint may be unavailable — weekend label still shows */
+      }
+      setHoliday(banner);
     } catch (e) {
       if (e instanceof ApiError && e.status !== 401) Alert.alert("Error", e.message);
     } finally {
@@ -84,6 +108,22 @@ export default function CheckInScreen() {
         load();
       }}
     >
+      {holiday ? (
+        <Card style={styles.holidayBanner}>
+          <View style={styles.holidayHead}>
+            <Ionicons name="calendar-clear" size={20} color={colors.accent} />
+            <Text style={styles.holidayTitle}>
+              {holiday.kind === "weekend" ? "Today is a weekly off" : "Today is a holiday"}
+            </Text>
+          </View>
+          <Muted>
+            {holiday.kind === "weekend"
+              ? `${holiday.name} — attendance is optional. Any work today counts as extra time.`
+              : `${holiday.name} — attendance is optional. If you work today, just check in as usual.`}
+          </Muted>
+        </Card>
+      ) : null}
+
       <Card style={styles.statusCard}>
         <View style={styles.statusHead}>
           <Ionicons
@@ -155,6 +195,9 @@ export default function CheckInScreen() {
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   statusCard: { gap: spacing.md },
+  holidayBanner: { borderColor: colors.accent, gap: spacing.xs },
+  holidayHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  holidayTitle: { fontSize: font.md, fontWeight: "700", color: colors.accent },
   statusHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   statusTitle: { fontSize: font.lg, fontWeight: "700", color: colors.text },
   sectionTitle: { fontSize: font.md, fontWeight: "700", color: colors.text },

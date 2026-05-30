@@ -3,6 +3,7 @@ export type EmploymentType = "FULL_TIME" | "INTERN";
 export type AttendanceStatus = "WITHIN_RANGE" | "OUTSIDE_RANGE" | "NO_OFFICE_REFERENCE";
 export type LeaveType = "CASUAL" | "SICK" | "PAID" | "UNPAID" | "OTHER";
 export type LeaveStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type HolidayType = "PUBLIC" | "OPTIONAL";
 
 export interface LoginResult {
   id: string;
@@ -123,12 +124,25 @@ export interface RoleItem {
   createdAt: string;
 }
 
+export interface Holiday {
+  id: string;
+  date: string; // YYYY-MM-DD
+  name: string;
+  type: HolidayType;
+  description: string | null;
+  officeId: string | null; // null = all offices
+  office: { id: string; code: string; name: string } | null;
+}
+
 export interface DailySummary {
   date: string;
   totalEmployees: number;
   checkedIn: number;
   checkedOut: number;
   onLeave: number;
+  onHoliday: number;
+  /** Sum of minutes worked on holidays / weekends across all employees. */
+  extraTimeMinutes: number;
   absent: number;
 }
 
@@ -146,6 +160,11 @@ export interface DailyRow {
   officeCode: string | null;
   durationMinutes: number | null;
   onLeave: boolean;
+  isHoliday: boolean; // weekend OR explicit holiday for this user's office(s)
+  isWeekend: boolean; // pure calendar Sat/Sun (subset of isHoliday)
+  holidayName: string | null; // "Republic Day", "Saturday", "Sunday", …
+  /** Minutes worked on a holiday / weekend, 0 otherwise. */
+  extraTimeMinutes: number;
   latitude: number | null;
   longitude: number | null;
   office: { name: string; latitude: number; longitude: number; radiusMeters: number } | null;

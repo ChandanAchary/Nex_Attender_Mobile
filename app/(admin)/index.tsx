@@ -13,7 +13,18 @@ import { openInMaps } from "@/lib/location";
 import { shareCsv } from "@/lib/share";
 import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
+function holidayTag(name: string | null): string {
+  if (!name) return "holiday";
+  // Compact weekend names; explicit holiday names stay verbatim.
+  if (name === "Saturday") return "Sat";
+  if (name === "Sunday") return "Sun";
+  return name;
+}
+
 function rowState(r: DailyRow): { label: string; tone: "success" | "warning" | "danger" | "info" } {
+  if (r.isHoliday && (r.checkInAt || r.checkOutAt))
+    return { label: `Worked (${holidayTag(r.holidayName)})`, tone: "warning" };
+  if (r.isHoliday) return { label: r.holidayName ?? "Holiday", tone: "info" };
   if (r.onLeave) return { label: "On leave", tone: "info" };
   if (r.checkOutAt) return { label: "Checked out", tone: "success" };
   if (r.checkInAt) return { label: "Present", tone: "success" };
@@ -99,6 +110,12 @@ export default function AdminDashboard() {
         <Stat label="Present" value={s?.checkedIn ?? 0} color={colors.success} />
         <Stat label="Checked out" value={s?.checkedOut ?? 0} color={colors.primary} />
         <Stat label="On leave" value={s?.onLeave ?? 0} color={colors.info} />
+        <Stat label="Holiday" value={s?.onHoliday ?? 0} color={colors.accent} />
+        <Stat
+          label="Extra time"
+          value={formatDuration(s?.extraTimeMinutes ?? 0)}
+          color={colors.warning}
+        />
         <Stat label="Absent" value={s?.absent ?? 0} color={colors.danger} />
       </View>
 
@@ -152,7 +169,7 @@ export default function AdminDashboard() {
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+function Stat({ label, value, color }: { label: string; value: number | string; color: string }) {
   const { styles } = useThemedStyles(makeStyles);
   return (
     <View style={styles.stat}>

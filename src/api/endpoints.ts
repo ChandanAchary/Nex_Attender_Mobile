@@ -5,6 +5,8 @@ import type {
   AttendancePunch,
   GeocodeResult,
   HistoryDay,
+  Holiday,
+  HolidayType,
   Leave,
   LeaveType,
   LoginResult,
@@ -94,6 +96,29 @@ export const offices = {
     api.post<{ office: Office }>("/api/offices", input),
   update: (id: string, patch: Record<string, unknown>) =>
     api.patch<{ office: Office }>(`/api/offices/${id}`, patch),
+};
+
+export const holidays = {
+  list: (params?: { from?: string; to?: string }) =>
+    api.get<{ holidays: Holiday[] }>("/api/holidays", params),
+  create: (input: {
+    date: string;
+    name: string;
+    type: HolidayType;
+    description?: string;
+    officeId?: string;
+  }) => api.post<{ holiday: Holiday }>("/api/holidays", input),
+  update: (
+    id: string,
+    patch: Partial<{
+      date: string;
+      name: string;
+      type: HolidayType;
+      description: string;
+      officeId: string;
+    }>,
+  ) => api.patch<{ holiday: Holiday }>(`/api/holidays/${id}`, patch),
+  remove: (id: string) => api.del<{ deleted: true }>(`/api/holidays/${id}`),
 };
 
 export const roles = {
