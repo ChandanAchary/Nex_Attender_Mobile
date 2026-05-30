@@ -4,6 +4,7 @@ import type {
   AttendanceDay,
   AttendancePunch,
   GeocodeResult,
+  HistoryDay,
   Leave,
   LeaveType,
   LoginResult,
@@ -54,6 +55,7 @@ export const me = {
 
 export const attendance = {
   today: () => api.get<TodayState>("/api/attendance/today"),
+  history: () => api.get<{ days: HistoryDay[] }>("/api/attendance/history"),
   checkIn: (geo: GeoPayload) =>
     api.post<AttendancePunch>("/api/attendance/check-in", geo),
   checkOut: (geo: GeoPayload) =>

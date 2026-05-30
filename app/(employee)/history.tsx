@@ -7,7 +7,7 @@ import { Badge, Card, Loading, Muted } from "@/components/ui";
 import { attendance } from "@/api/endpoints";
 import type { HistoryDay } from "@/api/types";
 import { ApiError } from "@/api/client";
-import { formatDate, formatDuration, formatTime, statusLabel, todayIso } from "@/lib/format";
+import { formatDate, formatDuration, formatTime, statusLabel } from "@/lib/format";
 import { font, spacing, useThemedStyles, type Palette } from "@/theme";
 
 export default function HistoryScreen() {
@@ -20,18 +20,8 @@ export default function HistoryScreen() {
   const load = useCallback(async () => {
     setError("");
     try {
-      // The server exposes only today's attendance to employees, so history
-      // shows today's record. (No employee history API exists server-side.)
-      const t = await attendance.today();
-      const day: HistoryDay | null = t.checkIn
-        ? {
-            date: todayIso(),
-            checkIn: t.checkIn,
-            checkOut: t.checkOut,
-            durationMinutes: t.durationMinutes,
-          }
-        : null;
-      setDays(day ? [day] : []);
+      const { days } = await attendance.history();
+      setDays(days);
     } catch (e) {
       if (e instanceof ApiError && e.status !== 401) setError(e.message);
     } finally {
@@ -51,7 +41,7 @@ export default function HistoryScreen() {
   return (
     <Screen
       title="History"
-      subtitle="Today's attendance"
+      subtitle="Last 30 days"
       refreshing={refreshing}
       onRefresh={() => {
         setRefreshing(true);
@@ -64,7 +54,7 @@ export default function HistoryScreen() {
         <Card>
           <View style={{ alignItems: "center", gap: spacing.sm, paddingVertical: spacing.lg }}>
             <Ionicons name="calendar-outline" size={40} color={colors.textMuted} />
-            <Muted>No check-in recorded today.</Muted>
+            <Muted>No attendance in the last 30 days.</Muted>
           </View>
         </Card>
       ) : (
@@ -96,13 +86,6 @@ export default function HistoryScreen() {
           );
         })
       )}
-
-      <Card>
-        <Muted>
-          Full 30-day history is available in the web app. The mobile app shows today's
-          record because the server doesn't expose a per-employee history API.
-        </Muted>
-      </Card>
     </Screen>
   );
 }
