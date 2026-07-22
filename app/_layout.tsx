@@ -10,6 +10,7 @@ import { Splash } from "@/components/Splash";
 import { Loading } from "@/components/ui";
 import { SplashDoneContext } from "@/lib/splashGate";
 import { ThemeProvider, useTheme } from "@/theme";
+import * as Updates from "expo-updates";
 
 function RootNavigator() {
   const { loading, user, locked, isAdmin } = useAuth();
@@ -61,6 +62,20 @@ function Root() {
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.bg).catch(() => {});
+
+    if (!__DEV__) {
+      (async () => {
+        try {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            await Updates.reloadAsync();
+          }
+        } catch {
+          /* updates check offline */
+        }
+      })();
+    }
   }, [colors.bg]);
 
   return (
