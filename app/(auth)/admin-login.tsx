@@ -19,11 +19,12 @@ import { GlowBackdrop } from "@/components/GlowBackdrop";
 import { storage } from "@/lib/storage";
 import { ApiError } from "@/api/client";
 import { haptics } from "@/lib/haptics";
-import { font, layout, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { font, layout, radius, spacing, useTheme, useThemedStyles, type Palette } from "@/theme";
 import { useKeyboardHeight } from "@/lib/useKeyboard";
 
 export default function AdminLogin() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const { scheme, setMode } = useTheme();
   const kb = useKeyboardHeight();
   const { signIn } = useAuth();
   const router = useRouter();
@@ -64,6 +65,11 @@ export default function AdminLogin() {
     }
   };
 
+  const toggleTheme = () => {
+    haptics.selection();
+    setMode(scheme === "dark" ? "light" : "dark");
+  };
+
   const goBack = () => (router.canGoBack() ? router.back() : router.replace("/(auth)/login"));
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [22, 0] });
 
@@ -75,10 +81,24 @@ export default function AdminLogin() {
         style={{ flex: 1 }}
       >
         <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scroll, kb > 0 && { paddingBottom: kb + spacing.xl }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="none" showsVerticalScrollIndicator={false}>
-          <Pressable style={styles.back} onPress={goBack} hitSlop={8}>
-            <Ionicons name="chevron-back" size={22} color={colors.text} />
-            <Text style={styles.backText}>Employee login</Text>
-          </Pressable>
+          <View style={styles.topBar}>
+            <Pressable style={styles.back} onPress={goBack} hitSlop={8}>
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
+              <Text style={styles.backText}>Employee login</Text>
+            </Pressable>
+            <Pressable
+              style={styles.themeToggleBtn}
+              onPress={toggleTheme}
+              hitSlop={8}
+              accessibilityLabel="Toggle theme mode"
+            >
+              <Ionicons
+                name={scheme === "dark" ? "sunny" : "moon"}
+                size={20}
+                color={colors.text}
+              />
+            </Pressable>
+          </View>
 
           <Animated.View style={{ opacity: enter, transform: [{ translateY }], gap: spacing.xl }}>
             <View style={styles.brand}>
@@ -138,8 +158,15 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
     scroll: { flexGrow: 1, justifyContent: "flex-start", padding: spacing.xl, gap: spacing.xl },
-    back: { flexDirection: "row", alignItems: "center", gap: spacing.xs, alignSelf: "flex-start" },
+    back: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
     backText: { color: colors.text, fontSize: font.sm, fontWeight: "600" },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+      paddingTop: spacing.xs,
+    },
     brand: { alignItems: "center", gap: spacing.sm },
     logo: {
       width: 68,
@@ -185,4 +212,19 @@ const makeStyles = (colors: Palette) =>
     },
     eye: { position: "absolute", right: spacing.md, top: 34 },
     note: { color: colors.textMuted, fontSize: font.xs, textAlign: "center", lineHeight: 18 },
+    themeToggleBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 4,
+    },
   });

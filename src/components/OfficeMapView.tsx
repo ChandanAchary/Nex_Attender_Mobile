@@ -43,7 +43,7 @@ function generateLeafletHtml(
 ): string {
   const userLatStr = userLoc ? userLoc.latitude : "null";
   const userLngStr = userLoc ? userLoc.longitude : "null";
-  const distText = distance != null ? `${Math.round(distance)} m away` : "";
+  const distText = distance != null ? `${Math.round(distance)} m away from office` : "";
 
   return `
 <!DOCTYPE html>
@@ -56,8 +56,16 @@ function generateLeafletHtml(
     body, html, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #0F172A; }
     .leaflet-container { background: #0F172A; font-family: system-ui, -apple-system, sans-serif; }
     .leaflet-control-attribution { display: none !important; }
-    .leaflet-popup-content-wrapper { background: #1E293B; color: #F8FAFC; border-radius: 8px; border: 1px solid #334155; }
+    .leaflet-popup-content-wrapper { background: #1E293B; color: #F8FAFC; border-radius: 10px; border: 1px solid #334155; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
     .leaflet-popup-tip { background: #1E293B; }
+    .pulse-dot {
+      width: 18px;
+      height: 18px;
+      background: ${withinRange ? "#10B981" : "#F59E0B"};
+      border: 3px solid #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 0 10px ${withinRange ? "rgba(16, 185, 129, 0.8)" : "rgba(245, 158, 11, 0.8)"};
+    }
   </style>
 </head>
 <body>
@@ -69,42 +77,49 @@ function generateLeafletHtml(
     var userLat = ${userLatStr};
     var userLng = ${userLngStr};
 
-    var map = L.map('map', { zoomControl: false }).setView([officeLat, officeLng], 17);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd'
+    var map = L.map('map', { zoomControl: true }).setView([officeLat, officeLng], 18);
+
+    // Google Maps Tile Layer (Roadmap details, landmarks, shops & street numbers)
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      attribution: 'Google Maps'
     }).addTo(map);
 
     // Geofence Circle
     var circle = L.circle([officeLat, officeLng], {
       color: '#6366F1',
       fillColor: '#6366F1',
-      fillOpacity: 0.25,
-      weight: 2
+      fillOpacity: 0.22,
+      weight: 3
     }).addTo(map);
     circle.setRadius(radius);
 
-    // Office Marker
-    var officeMarker = L.marker([officeLat, officeLng]).addTo(map);
-    officeMarker.bindPopup("<b>${office.name}</b><br>Geofence Radius: " + radius + " m");
+    // Office Marker (Custom pin callout)
+    var officeIcon = L.divIcon({
+      className: 'custom-office-pin',
+      html: '<div style="background:#6366F1; color:#FFF; width:34px; height:34px; border-radius:17px; display:flex; align-items:center; justify-content:center; border:2px solid #FFF; box-shadow:0 3px 8px rgba(0,0,0,0.4); font-size:16px;">🏢</div>',
+      iconSize: [34, 34],
+      iconAnchor: [17, 17]
+    });
+    var officeMarker = L.marker([officeLat, officeLng], { icon: officeIcon }).addTo(map);
+    officeMarker.bindPopup("<div style='padding:4px;'><b>${office.name}</b><br><span style='font-size:12px; opacity:0.8;'>Geofence Radius: " + radius + " m</span></div>").openPopup();
 
     // User Location Marker
     if (userLat !== null && userLng !== null) {
-      var userColor = ${withinRange ? "'#10B981'" : "'#F59E0B'"};
-      var userMarker = L.circleMarker([userLat, userLng], {
-        radius: 9,
-        color: '#FFFFFF',
-        fillColor: userColor,
-        fillOpacity: 1,
-        weight: 3
-      }).addTo(map);
-      userMarker.bindPopup("<b>You (Current Location)</b><br>" + "${distText}");
+      var userIcon = L.divIcon({
+        className: 'custom-user-pin',
+        html: '<div class="pulse-dot"></div>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      });
+      var userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
+      userMarker.bindPopup("<div style='padding:4px;'><b>📍 You (Current Location)</b><br><span style='font-size:12px; opacity:0.8;'>" + "${distText}" + "</span></div>");
 
       var bounds = L.latLngBounds([
         [officeLat, officeLng],
         [userLat, userLng]
       ]);
-      map.fitBounds(bounds.pad(0.35));
+      map.fitBounds(bounds.pad(0.4));
     }
   </script>
 </body>
@@ -147,6 +162,21 @@ export function OfficeMapView({ office, height = 240, showDetails = true }: Offi
 
   return (
     <>
+      {/* Outer Header Row (Outside Map View Box) */}
+      <View style={styles.outsideHeaderRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.officeNameText}>{office.name}</Text>
+          <Muted style={{ fontSize: 12 }}>Geofence radius: {office.attendanceRadiusMeters} m</Muted>
+        </View>
+        {distance != null ? (
+          <Badge
+            label={withinRange ? "Within Range" : `${Math.round(distance)}m Away`}
+            tone={withinRange ? "success" : "warning"}
+          />
+        ) : null}
+      </View>
+
+      {/* Map View Box Container */}
       <View style={[styles.cardContainer, { height }]}>
         <WebView
           originWhitelist={["*"]}
@@ -154,20 +184,6 @@ export function OfficeMapView({ office, height = 240, showDetails = true }: Offi
           style={StyleSheet.absoluteFillObject}
           scrollEnabled={false}
         />
-
-        {/* Map Header Overlay */}
-        <View style={styles.headerOverlay}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.officeNameText}>{office.name}</Text>
-            <Muted style={{ fontSize: 11 }}>Radius: {office.attendanceRadiusMeters} m</Muted>
-          </View>
-          {distance != null ? (
-            <Badge
-              label={withinRange ? "Within Range" : `${Math.round(distance)}m Away`}
-              tone={withinRange ? "success" : "warning"}
-            />
-          ) : null}
-        </View>
 
         {/* Map Action Floating Controls */}
         <View style={styles.controlsOverlay}>
@@ -207,7 +223,7 @@ export function OfficeMapView({ office, height = 240, showDetails = true }: Offi
           <View style={styles.modalHeader}>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalTitle}>{office.name}</Text>
-              <Muted>Geofence Radius & Live Location</Muted>
+              <Muted>Google Maps Details & Live GPS Location</Muted>
             </View>
             <Pressable onPress={() => setFullModal(false)} style={{ padding: spacing.xs }}>
               <Ionicons name="close" size={24} color={colors.text} />
@@ -250,6 +266,17 @@ export function OfficeMapView({ office, height = 240, showDetails = true }: Offi
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
+    outsideHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.xs,
+      gap: spacing.sm,
+    },
+    officeNameText: {
+      fontSize: font.md,
+      fontWeight: "700",
+      color: colors.text,
+    },
     cardContainer: {
       borderRadius: radius.md,
       overflow: "hidden",
@@ -258,30 +285,10 @@ const makeStyles = (colors: Palette) =>
       marginVertical: spacing.xs,
       position: "relative",
     },
-    headerOverlay: {
-      position: "absolute",
-      top: spacing.sm,
-      left: spacing.sm,
-      right: spacing.sm,
-      backgroundColor: colors.card,
-      borderRadius: radius.sm,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.xs,
-      flexDirection: "row",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: colors.border,
-      opacity: 0.95,
-    },
-    officeNameText: {
-      fontSize: font.sm,
-      fontWeight: "700",
-      color: colors.text,
-    },
     controlsOverlay: {
       position: "absolute",
       right: spacing.sm,
-      bottom: spacing.lg + spacing.xs,
+      bottom: 42,
       gap: spacing.xs,
     },
     iconBtn: {

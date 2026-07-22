@@ -21,12 +21,13 @@ import { storage } from "@/lib/storage";
 import { isBiometricAvailable } from "@/lib/biometric";
 import { ApiError } from "@/api/client";
 import { haptics } from "@/lib/haptics";
-import { font, layout, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+import { font, layout, radius, spacing, useTheme, useThemedStyles, type Palette } from "@/theme";
 import { useKeyboardHeight } from "@/lib/useKeyboard";
 import { useSplashDone } from "@/lib/splashGate";
 
 export default function Login() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const { scheme, setMode } = useTheme();
   const kb = useKeyboardHeight();
   const splashDone = useSplashDone();
   const { signIn, unlock } = useAuth();
@@ -80,6 +81,11 @@ export default function Login() {
     }
   };
 
+  const toggleTheme = () => {
+    haptics.selection();
+    setMode(scheme === "dark" ? "light" : "dark");
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <GlowBackdrop />
@@ -88,6 +94,21 @@ export default function Login() {
         style={{ flex: 1 }}
       >
         <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scroll, kb > 0 && { paddingBottom: kb + spacing.xl }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="none" showsVerticalScrollIndicator={false}>
+          <View style={styles.topBar}>
+            <View style={{ flex: 1 }} />
+            <Pressable
+              style={styles.themeToggleBtn}
+              onPress={toggleTheme}
+              hitSlop={8}
+              accessibilityLabel="Toggle theme mode"
+            >
+              <Ionicons
+                name={scheme === "dark" ? "sunny" : "moon"}
+                size={20}
+                color={colors.text}
+              />
+            </Pressable>
+          </View>
           <Animated.View
             style={[
               styles.brand,
@@ -216,4 +237,26 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.card,
     },
     adminText: { color: colors.textMuted, fontWeight: "700", fontSize: font.sm },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      width: "100%",
+      paddingTop: spacing.xs,
+    },
+    themeToggleBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 4,
+    },
   });
