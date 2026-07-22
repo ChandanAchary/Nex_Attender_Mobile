@@ -17,46 +17,64 @@ export default function AdminLayout() {
         name="index"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="grid" size={24} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) => <Ionicons name="grid" size={24} color={color} />,
         }}
       />
       <MaterialTopTabs.Screen
-        name="employees"
+        name="day-status"
         options={{
-          title: "People",
-          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="people" size={24} color={color} />,
+          title: "Attendance Status",
+          tabBarIcon: ({ color }: { color: string }) => (
+            <Ionicons name="stats-chart" size={24} color={color} />
+          ),
         }}
       />
       <MaterialTopTabs.Screen
         name="leave"
         options={{
           title: "Leave",
-          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="calendar" size={24} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) => <Ionicons name="calendar" size={24} color={color} />,
+        }}
+      />
+      <MaterialTopTabs.Screen
+        name="menu"
+        options={{
+          title: "Menu",
+          tabBarIcon: ({ color }: { color: string }) => <Ionicons name="menu" size={24} color={color} />,
+        }}
+      />
+
+      {/* Hidden screens in bottom tab bar — accessible via Menu or direct navigation */}
+      <MaterialTopTabs.Screen
+        name="employees"
+        options={{
+          title: "People",
+          tabBarItemStyle: { display: "none" },
         }}
       />
       <MaterialTopTabs.Screen
         name="offices"
         options={{
           title: "Offices",
-          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="business" size={24} color={color} />,
+          tabBarItemStyle: { display: "none" },
         }}
       />
       <MaterialTopTabs.Screen
         name="holidays"
         options={{
           title: "Holidays",
-          tabBarIcon: ({ color }: { color: string }) => (
-            <Ionicons name="calendar-clear-outline" size={24} color={color} />
-          ),
+          tabBarItemStyle: { display: "none" },
         }}
       />
       <MaterialTopTabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }: { color: string }) =><Ionicons name="person" size={24} color={color} />,
+          tabBarItemStyle: { display: "none" },
         }}
       />
     </MaterialTopTabs>
   );
 }
+
+

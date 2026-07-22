@@ -155,19 +155,29 @@ export default function CheckInScreen() {
         )}
       </Card>
 
+      {user?.role === "ADMIN" ? (
+        <Card style={styles.holidayBanner}>
+          <View style={styles.holidayHead}>
+            <Ionicons name="information-circle" size={20} color={colors.info} />
+            <Text style={[styles.holidayTitle, { color: colors.info }]}>Admin Account</Text>
+          </View>
+          <Muted>Attendance marking is not applicable to administrator accounts.</Muted>
+        </Card>
+      ) : null}
+
       <View style={{ gap: spacing.md }}>
         <Button
           title={checkedIn ? "Already checked in" : "Check in"}
           onPress={() => punch("in")}
           loading={busy === "in"}
-          disabled={checkedIn}
+          disabled={checkedIn || user?.role === "ADMIN"}
         />
         <Button
           title={checkedOut ? "Already checked out" : "Check out"}
           variant="secondary"
           onPress={() => punch("out")}
           loading={busy === "out"}
-          disabled={!checkedIn || checkedOut}
+          disabled={!checkedIn || checkedOut || user?.role === "ADMIN"}
         />
       </View>
 

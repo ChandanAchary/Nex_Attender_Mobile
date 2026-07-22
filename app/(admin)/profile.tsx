@@ -6,7 +6,7 @@ import { Button, Card, Muted } from "@/components/ui";
 import { reports } from "@/api/endpoints";
 import { ApiError } from "@/api/client";
 import { currentMonthIso } from "@/lib/format";
-import { shareCsv } from "@/lib/share";
+import { shareXls } from "@/lib/share";
 
 export default function AdminProfile() {
   const [downloading, setDownloading] = useState(false);
@@ -15,8 +15,8 @@ export default function AdminProfile() {
     setDownloading(true);
     const month = currentMonthIso();
     try {
-      const csv = await reports.monthlyCsv(month);
-      await shareCsv(`attendance-summary-${month}.csv`, csv);
+      const xls = await reports.dayStatusXls(month);
+      await shareXls(`day-status-${month}.xls`, xls);
     } catch (e) {
       Alert.alert("Export failed", e instanceof ApiError ? e.message : "Try again.");
     } finally {
@@ -28,9 +28,9 @@ export default function AdminProfile() {
     <Screen title="Profile" subtitle="Account & reports">
       <ProfileCommon />
       <Card>
-        <Muted>Download this month's per-employee attendance summary.</Muted>
+        <Muted>Download this month's day-wise attendance status report.</Muted>
         <Button
-          title="Export monthly report (CSV)"
+          title="Export monthly report (Excel)"
           variant="secondary"
           onPress={exportMonthly}
           loading={downloading}
@@ -39,3 +39,4 @@ export default function AdminProfile() {
     </Screen>
   );
 }
+

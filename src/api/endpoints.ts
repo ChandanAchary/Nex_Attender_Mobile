@@ -11,6 +11,7 @@ import type {
   LeaveType,
   LoginResult,
   Me,
+  MonthlyDayStatusResponse,
   Office,
   RoleItem,
   TodayState,
@@ -58,6 +59,11 @@ export const me = {
 export const attendance = {
   today: () => api.get<TodayState>("/api/attendance/today"),
   history: () => api.get<{ days: HistoryDay[] }>("/api/attendance/history"),
+  dayStatus: (month?: string, officeId?: string) =>
+    api.get<MonthlyDayStatusResponse>("/api/attendance/day-status", {
+      ...(month ? { month } : {}),
+      ...(officeId ? { officeId } : {}),
+    }),
   checkIn: (geo: GeoPayload) =>
     api.post<AttendancePunch>("/api/attendance/check-in", geo),
   checkOut: (geo: GeoPayload) =>
@@ -142,6 +148,9 @@ export const geo = {
 export const reports = {
   dailyCsv: (date?: string) =>
     api.getRaw("/api/reports/daily.csv", date ? { date } : undefined),
-  monthlyCsv: (month?: string) =>
-    api.getRaw("/api/reports/monthly.csv", month ? { month } : undefined),
+  dayStatusXls: (month?: string, officeId?: string) =>
+    api.getRaw("/api/reports/day-status.xls", {
+      ...(month ? { month } : {}),
+      ...(officeId ? { officeId } : {}),
+    }),
 };

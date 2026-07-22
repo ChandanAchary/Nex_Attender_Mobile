@@ -184,3 +184,55 @@ export interface GeocodeResult {
   state: string | null;
   pincode: string | null;
 }
+
+export type DayStatus =
+  | "PRESENT"
+  | "LEAVE"
+  | "HOLIDAY"
+  | "WEEKEND"
+  | "ABSENT"
+  | "FUTURE"
+  | "NOT_JOINED";
+
+export interface DayCell {
+  date: string;
+  status: DayStatus;
+  holidayName: string | null;
+  leaveType: string | null;
+  checkInAt: string | null;
+  checkOutAt: string | null;
+  durationMinutes: number | null;
+  workedOnHoliday: boolean;
+}
+
+export interface EmployeeMonth {
+  userId: string;
+  name: string;
+  role: string;
+  employmentType: string;
+  department: string | null;
+  days: DayCell[];
+  totals: {
+    present: number;
+    absent: number;
+    leave: number;
+    holiday: number;
+    workingDays: number;
+    extraTimeMinutes: number;
+  };
+}
+
+export interface MonthTotals {
+  present: number;
+  absent: number;
+  leave: number;
+  holiday: number;
+}
+
+export interface MonthlyDayStatusResponse {
+  month: string;
+  dates: string[];
+  rows: EmployeeMonth[];
+  totals: MonthTotals;
+}
+

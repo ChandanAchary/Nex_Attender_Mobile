@@ -77,39 +77,45 @@ export function FloatingTabBar({ state, descriptors, navigation }: MaterialTopTa
           experimentalBlurMethod="dimezisBlurView"
           style={[styles.bar, { borderColor }]}
         >
-          {state.routes.map((route, index) => {
-            const { options } = descriptors[route.key];
-            const focused = state.index === index;
-            const tint = focused ? colors.primary : colors.textMuted;
-            const label = typeof options.title === "string" ? options.title : route.name;
+          {state.routes
+            .filter((route) => {
+              const { options } = descriptors[route.key];
+              return (options.tabBarItemStyle as any)?.display !== "none";
+            })
+            .map((route) => {
+              const index = state.routes.findIndex((r) => r.key === route.key);
+              const { options } = descriptors[route.key];
+              const focused = state.index === index;
+              const tint = focused ? colors.primary : colors.textMuted;
+              const label = typeof options.title === "string" ? options.title : route.name;
 
-            const onPress = () => {
-              haptics.selection();
-              const event = navigation.emit({
-                type: "tabPress",
-                target: route.key,
-                canPreventDefault: true,
-              });
-              if (!focused && !event.defaultPrevented) {
-                navigation.navigate(route.name, route.params);
-              }
-            };
-            const onLongPress = () =>
-              navigation.emit({ type: "tabLongPress", target: route.key });
+              const onPress = () => {
+                haptics.selection();
+                const event = navigation.emit({
+                  type: "tabPress",
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (!focused && !event.defaultPrevented) {
+                  navigation.navigate(route.name, route.params);
+                }
+              };
+              const onLongPress = () =>
+                navigation.emit({ type: "tabLongPress", target: route.key });
 
-            return (
-              <TabItem
-                key={route.key}
-                focused={focused}
-                tint={tint}
-                label={label}
-                icon={options.tabBarIcon?.({ focused, color: tint })}
-                onPress={onPress}
-                onLongPress={onLongPress}
-                accessibilityLabel={label}
-              />
-            );
-          })}
+              return (
+                <TabItem
+                  key={route.key}
+                  focused={focused}
+                  tint={tint}
+                  label={label}
+                  icon={options.tabBarIcon?.({ focused, color: tint })}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                  accessibilityLabel={label}
+                />
+              );
+            })}
         </BlurView>
       </View>
     </View>

@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/Screen";
 import { Badge, Button, Card, Loading, Muted } from "@/components/ui";
@@ -33,6 +33,7 @@ function rowState(r: DailyRow): { label: string; tone: "success" | "warning" | "
 
 export default function AdminDashboard() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const router = useRouter();
   const [date, setDate] = useState(todayIso());
   const [data, setData] = useState<AttendanceDay | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,6 +79,11 @@ export default function AdminDashboard() {
     <Screen
       title="Dashboard"
       subtitle={formatDate(date)}
+      right={
+        <Pressable style={styles.profileIconBtn} onPress={() => router.push("/(admin)/profile")}>
+          <Ionicons name="person-circle-outline" size={32} color={colors.primary} />
+        </Pressable>
+      }
       refreshing={refreshing}
       onRefresh={() => {
         setRefreshing(true);
@@ -210,4 +216,5 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   metaRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
   mapLink: { flexDirection: "row", alignItems: "center", gap: 3 },
   mapText: { color: colors.primary, fontWeight: "600", fontSize: font.xs },
+  profileIconBtn: { padding: spacing.xs },
 });
