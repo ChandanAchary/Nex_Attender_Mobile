@@ -2,16 +2,17 @@ import React, { useCallback, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
 import { Badge, Button, Card, Loading, Muted, Row } from "@/components/ui";
 import { attendance, offices as officesApi, reports } from "@/api/endpoints";
 import type { DayCell, DayStatus, EmployeeMonth, MonthlyDayStatusResponse, Office } from "@/api/types";
 import { ApiError } from "@/api/client";
-import { currentMonthIso, formatDate, formatDuration, formatTime } from "@/lib/format";
+import { currentMonthIso, formatDate, formatDuration, formatMonthLabel, formatTime } from "@/lib/format";
 import { haptics } from "@/lib/haptics";
 import { shareXls } from "@/lib/share";
 import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function statusTone(s: DayStatus): "success" | "danger" | "info" | "warning" | undefined {
   switch (s) {
@@ -142,11 +143,16 @@ export default function DayStatusScreen() {
 
   if (loading) return <Loading label="Loading attendance status…" />;
 
+  // Real calendar padding calculation
+  const [y, m] = month.split("-").map(Number);
+  const firstDayOfWeek = new Date(y, m - 1, 1).getDay(); // 0 = Sun, 1 = Mon ...
+  const leadingPadding = Array.from({ length: firstDayOfWeek });
+
   return (
     <>
       <Screen
         title="Attendance Status"
-        subtitle={`Monthly breakdown — ${month}`}
+        subtitle={`Monthly breakdown — ${formatMonthLabel(month)}`}
         refreshing={refreshing}
         onRefresh={() => {
           setRefreshing(true);
@@ -158,7 +164,7 @@ export default function DayStatusScreen() {
           <Pressable onPress={prevMonth} style={styles.navBtn}>
             <Ionicons name="chevron-back" size={20} color={colors.text} />
           </Pressable>
-          <Text style={styles.monthText}>{month}</Text>
+          <Text style={styles.monthText}>{formatMonthLabel(month)}</Text>
           <Pressable onPress={nextMonth} style={styles.navBtn}>
             <Ionicons name="chevron-forward" size={20} color={colors.text} />
           </Pressable>
@@ -247,15 +253,39 @@ export default function DayStatusScreen() {
                   ) : null}
                 </View>
 
-                {/* Expandable Organized Daily Grid */}
+                {/* Expandable Real 7-Day Calendar Grid */}
                 {isExpanded ? (
                   <View style={styles.daysContainer}>
                     <Text style={styles.gridHeader}>Daily Breakdown — Tap a day for full details</Text>
-                    <View style={styles.daysGrid}>
+                    
+                    {/* Weekday Header Row */}
+                    <View style={styles.weekdayHeaderRow}>
+                      {WEEKDAYS.map((dayName, idx) => (
+                        <View key={dayName} style={styles.weekdayHeaderCell}>
+                          <Text
+                            style={[
+                              styles.weekdayHeaderText,
+                              (idx === 0 || idx === 6) && { color: colors.warning },
+                            ]}
+                          >
+                            {dayName}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    {/* Calendar Days Grid */}
+                    <View style={styles.calendarGrid}>
+                      {/* Leading empty padding */}
+                      {leadingPadding.map((_, i) => (
+                        <View key={`pad-${i}`} style={styles.dayCellWrapper} />
+                      ))}
+
+                      {/* Day Cells */}
                       {row.days.map((c) => (
                         <Pressable
                           key={c.date}
-                          style={styles.dayBox}
+                          style={styles.dayCellWrapper}
                           onPress={() => handleCellPress(row, c)}
                         >
                           <Text style={styles.dayNum}>{c.date.slice(8)}</Text>
@@ -367,8 +397,6 @@ function DayDetailModal({
                 <Text style={styles.extraText}>Worked on Holiday / Off — Flagged as Extra Time</Text>
               </View>
             ) : null}
-
-            <Button title="Close" variant="secondary" onPress={onClose} style={{ marginTop: spacing.sm }} />
           </View>
         </Pressable>
       </Pressable>
@@ -453,12 +481,31 @@ const makeStyles = (colors: Palette) =>
     },
     daysContainer: { marginTop: spacing.xs, paddingTop: spacing.xs, borderTopWidth: 1, borderTopColor: colors.border },
     gridHeader: { fontSize: font.xs, fontWeight: "600", color: colors.textMuted, marginBottom: spacing.sm },
-    daysGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-    dayBox: {
+    weekdayHeaderRow: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      paddingBottom: spacing.xs,
+      marginBottom: spacing.xs,
+    },
+    weekdayHeaderCell: {
+      width: "14.28%",
       alignItems: "center",
-      width: 36,
-      gap: 4,
+    },
+    weekdayHeaderText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.textMuted,
+    },
+    calendarGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+    dayCellWrapper: {
+      width: "14.28%",
+      alignItems: "center",
       paddingVertical: 4,
+      gap: 4,
     },
     dayNum: { fontSize: 11, fontWeight: "700", color: colors.text },
     statusBadge: {

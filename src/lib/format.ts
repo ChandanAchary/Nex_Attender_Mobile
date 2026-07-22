@@ -69,6 +69,13 @@ export function currentMonthIso(): string {
   return todayIso().slice(0, 7);
 }
 
+export function formatMonthLabel(monthIso: string): string {
+  if (!monthIso || !/^\d{4}-\d{2}$/.test(monthIso)) return monthIso;
+  const [year, month] = monthIso.split("-").map(Number);
+  const date = new Date(year, month - 1, 1);
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
 export function statusLabel(status: string): string {
   switch (status) {
     case "WITHIN_RANGE":

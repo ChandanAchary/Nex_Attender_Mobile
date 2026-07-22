@@ -25,7 +25,7 @@ export default function AdminProfile() {
   };
 
   return (
-    <Screen title="Profile" subtitle="Account & reports">
+    <Screen title="Profile" subtitle="Account & reports" showBack>
       <ProfileCommon />
       <Card>
         <Muted>Download this month's day-wise attendance status report.</Muted>

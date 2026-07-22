@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, BackHandler, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
@@ -21,6 +21,7 @@ const ymd = (d: Date) =>
 
 export default function Holidays() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const router = useRouter();
   const [list, setList] = useState<Holiday[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +77,7 @@ export default function Holidays() {
       <Screen
         title="Holidays"
         subtitle={`${list.length} on the calendar`}
+        showBack
         right={
           <Pressable style={styles.addBtn} onPress={() => setEditing("new")}>
             <Ionicons name="add" size={24} color={colors.textInverse} />

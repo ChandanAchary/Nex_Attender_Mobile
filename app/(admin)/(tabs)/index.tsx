@@ -15,7 +15,6 @@ import { font, radius, spacing, useThemedStyles, type Palette } from "@/theme";
 
 function holidayTag(name: string | null): string {
   if (!name) return "holiday";
-  // Compact weekend names; explicit holiday names stay verbatim.
   if (name === "Saturday") return "Sat";
   if (name === "Sunday") return "Sun";
   return name;

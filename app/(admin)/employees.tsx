@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { Alert, BackHandler, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
@@ -15,6 +15,7 @@ const EMPLOYMENT: EmploymentType[] = ["FULL_TIME", "INTERN"];
 
 export default function Employees() {
   const { styles, colors } = useThemedStyles(makeStyles);
+  const router = useRouter();
   const [list, setList] = useState<AdminUser[]>([]);
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [q, setQ] = useState("");
@@ -41,8 +42,7 @@ export default function Employees() {
   useFocusEffect(
     useCallback(() => {
       load(q);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [load]),
+    }, [load, q]),
   );
 
   const deactivate = (u: AdminUser) => {
@@ -53,7 +53,7 @@ export default function Employees() {
         style: "destructive",
         onPress: async () => {
           try {
-            await usersApi.deactivate(u.id);
+            await usersApi.update(u.id, { isActive: false });
             await load(q);
           } catch (e) {
             Alert.alert("Error", e instanceof ApiError ? e.message : "Failed.");
@@ -101,6 +101,7 @@ export default function Employees() {
       <Screen
         title="People"
         subtitle={`${list.length} employees`}
+        showBack
         right={
           <Pressable style={styles.addBtn} onPress={() => setShowForm(true)}>
             <Ionicons name="person-add" size={20} color={colors.textInverse} />
