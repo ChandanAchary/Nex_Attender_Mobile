@@ -60,6 +60,12 @@
       "expo-asset",
       "expo-font"
     ],
+    "updates": {
+      "url": "https://u.expo.dev/9ad2ccf8-f96a-462a-9543-e46b8dea2b9c"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "extra": {
       "router": {},
       "eas": {
