@@ -8,7 +8,8 @@ import { Badge, Button, Card, Loading, Muted, Row } from "@/components/ui";
 import { attendance, holidays as holidaysApi } from "@/api/endpoints";
 import type { TodayState } from "@/api/types";
 import { ApiError } from "@/api/client";
-import { getCurrentFix, LocationError, openInMaps } from "@/lib/location";
+import { OfficeMapView } from "@/components/OfficeMapView";
+import { getCurrentFix, LocationError } from "@/lib/location";
 import { formatDuration, formatTime, statusLabel, todayIso, weekendName } from "@/lib/format";
 import { font, spacing, useThemedStyles, type Palette } from "@/theme";
 import { haptics } from "@/lib/haptics";
@@ -182,17 +183,9 @@ export default function CheckInScreen() {
       </View>
 
       {office ? (
-        <Card>
+        <Card style={{ gap: spacing.xs }}>
           <Text style={styles.sectionTitle}>Your office</Text>
-          <Row label="Name" value={office.name} />
-          <Row label="Geofence radius" value={`${office.attendanceRadiusMeters} m`} />
-          <Pressable
-            style={styles.mapLink}
-            onPress={() => openInMaps(office.latitude, office.longitude, office.name)}
-          >
-            <Ionicons name="map" size={18} color={colors.primary} />
-            <Text style={styles.mapLinkText}>View on map</Text>
-          </Pressable>
+          <OfficeMapView office={office} height={240} />
         </Card>
       ) : (
         <Card>
