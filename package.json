@@ -14,7 +14,7 @@
     "@expo/vector-icons": "^15.0.3",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/material-top-tabs": "^7.4.28",
-    "expo": "^54.0.35",
+    "expo": "~54.0.36",
     "expo-asset": "~12.0.13",
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.13",
